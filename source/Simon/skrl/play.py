@@ -64,7 +64,6 @@ import gymnasium as gym
 import os
 import time
 import torch
-import pandas as pd
 
 import skrl
 from packaging import version
@@ -169,9 +168,6 @@ def main():
     # set agent to evaluation mode
     runner.agent.set_running_mode("eval")
 
-    # Create a list to store info dictionaries
-    all_info = []
-    
     # reset environment
     obs, _ = env.reset()
     timestep = 0
@@ -190,15 +186,9 @@ def main():
             else:
                 actions = outputs[-1].get("mean_actions", outputs[0])
             # env stepping
-            obs, _, _, _, info = env.step(actions)
-        
-        # Store info with timestep
-        info_with_timestep = {'timestep': timestep}
-        info_with_timestep.update(info)
-        all_info.append(info_with_timestep)
-        
-        timestep += 1
+            obs, _, _, _, _ = env.step(actions)
         if args_cli.video:
+            timestep += 1
             # exit the play loop after recording one video
             if timestep == args_cli.video_length:
                 break
@@ -208,13 +198,6 @@ def main():
         if args_cli.real_time and sleep_time > 0:
             time.sleep(sleep_time)
 
-    # After simulation ends, save to CSV
-    print(f"[INFO] Saving {len(all_info)} timesteps of data to CSV")
-    info_df = pd.DataFrame(all_info)
-    csv_path = os.path.join(log_dir, "biomechanics_data.csv")
-    info_df.to_csv(csv_path, index=False)
-    print(f"[INFO] Data saved to: {csv_path}")
-    
     # close the simulator
     env.close()
 
