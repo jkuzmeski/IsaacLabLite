@@ -26,7 +26,7 @@ class HumanoidAmpEnvCfg(DirectRLEnvCfg):
 
     # env
     episode_length_s = 10.0
-    decimation = 2
+    decimation: int = MISSING
 
     # spaces
     observation_space = 81
@@ -59,7 +59,7 @@ class HumanoidAmpEnvCfg(DirectRLEnvCfg):
     )
 
     # scene
-    scene: InteractiveSceneCfg = InteractiveSceneCfg(num_envs=4096, env_spacing=10.0, replicate_physics=True)
+    scene: InteractiveSceneCfg = InteractiveSceneCfg(num_envs=1024, env_spacing=10.0, replicate_physics=True)
 
     # robot
     robot: ArticulationCfg = HUMANOID_28_CFG.replace(prim_path="/World/envs/env_.*/Robot").replace(
@@ -87,3 +87,97 @@ class HumanoidAmpRunEnvCfg(HumanoidAmpEnvCfg):
 @configclass
 class HumanoidAmpWalkEnvCfg(HumanoidAmpEnvCfg):
     motion_file = os.path.join(MOTIONS_DIR, "humanoid_walk.npz")
+ 
+@configclass
+class HumanoidAmpWalkYoungEnvCfg(HumanoidAmpEnvCfg):
+    """Humanoid AMP environment config for elderly walking."""
+    
+    motion_file = os.path.join(MOTIONS_DIR, "humanoid_walk.npz")
+    decimation = 1
+    
+    # Modified simulation parameters with smaller timestep for stability
+    sim: SimulationCfg = SimulationCfg(
+        dt=1 / 60,
+        render_interval=decimation,
+        physx=PhysxCfg(
+            gpu_found_lost_pairs_capacity=2**23,
+            gpu_total_aggregate_pairs_capacity=2**23,
+        ),
+    )
+
+
+@configclass
+class HumanoidAmpWalkNormalEnvCfg(HumanoidAmpEnvCfg):
+    """Humanoid AMP environment config for elderly walking."""
+    
+    motion_file = os.path.join(MOTIONS_DIR, "humanoid_walk.npz")
+    decimation = 2
+    
+    # Modified simulation parameters with smaller timestep for stability
+    sim: SimulationCfg = SimulationCfg(
+        dt=1 / 60,
+        render_interval=decimation,
+        physx=PhysxCfg(
+            gpu_found_lost_pairs_capacity=2**23,
+            gpu_total_aggregate_pairs_capacity=2**23,
+        ),
+    )
+@configclass
+class HumanoidAmpWalkOldEnvCfg(HumanoidAmpEnvCfg):
+    """Humanoid AMP environment config for elderly walking."""
+    
+    motion_file = os.path.join(MOTIONS_DIR, "humanoid_walk.npz")
+    decimation = 4
+    
+    # Modified robot parameters to simulate elderly movement - with more stable settings
+    robot: ArticulationCfg = HUMANOID_28_CFG.replace(prim_path="/World/envs/env_.*/Robot").replace(
+        actuators={
+            "body": ImplicitActuatorCfg(
+                joint_names_expr=[".*"],
+                # Replace velocity_limit with velocity_limit_sim to address the warning
+                velocity_limit_sim=70.0,  # More conservative velocity limit
+                stiffness=45.0,  # Add moderate joint stiffness for stability
+                damping=3.0,  # Moderate damping - not too high to avoid instability
+            ),
+        },
+    )
+    
+    # Modified simulation parameters with smaller timestep for stability
+    sim: SimulationCfg = SimulationCfg(
+        dt=1 / 60,
+        render_interval=decimation,
+        physx=PhysxCfg(
+            gpu_found_lost_pairs_capacity=2**23,
+            gpu_total_aggregate_pairs_capacity=2**23,
+        ),
+    )
+    
+@configclass
+class HumanoidAmpWalkReallyOldEnvCfg(HumanoidAmpEnvCfg):
+    """Humanoid AMP environment config for elderly walking."""
+    
+    motion_file = os.path.join(MOTIONS_DIR, "humanoid_walk.npz")
+    decimation = 6
+    
+    # Modified robot parameters to simulate elderly movement - with more stable settings
+    robot: ArticulationCfg = HUMANOID_28_CFG.replace(prim_path="/World/envs/env_.*/Robot").replace(
+        actuators={
+            "body": ImplicitActuatorCfg(
+                joint_names_expr=[".*"],
+                # Replace velocity_limit with velocity_limit_sim to address the warning
+                velocity_limit_sim=40.0,  # More conservative velocity limit
+                stiffness=45.0,  # Add moderate joint stiffness for stability
+                damping=5.0,  # Moderate damping - not too high to avoid instability
+            ),
+        },
+    )
+    
+    # Modified simulation parameters with smaller timestep for stability
+    sim: SimulationCfg = SimulationCfg(
+        dt=1 / 60,
+        render_interval=decimation,
+        physx=PhysxCfg(
+            gpu_found_lost_pairs_capacity=2**23,
+            gpu_total_aggregate_pairs_capacity=2**23,
+        ),
+    )
