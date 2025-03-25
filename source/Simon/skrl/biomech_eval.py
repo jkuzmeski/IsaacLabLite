@@ -23,7 +23,7 @@ parser.add_argument("--video_length", type=int, default=200, help="Length of the
 parser.add_argument(
     "--disable_fabric", action="store_true", default=False, help="Disable fabric and use USD I/O operations."
 )
-parser.add_argument("--num_envs", type=int, default=None, help="Number of environments to simulate.")
+parser.add_argument("--num_envs", type=int, default=1, help="Number of environments to simulate.")
 parser.add_argument("--task", type=str, default=None, help="Name of the task.")
 parser.add_argument("--checkpoint", type=str, default=None, help="Path to model checkpoint.")
 parser.add_argument(
@@ -191,7 +191,20 @@ def main():
                 actions = outputs[-1].get("mean_actions", outputs[0])
             # env stepping
             obs, _, _, _, info = env.step(actions)
-        
+        # Add this debugging block after the step call
+        if timestep == 0:
+            print("\n[INFO] First info dictionary structure:")
+            print_dict(info, nesting=2)  # Using the existing print_dict utility
+            #print the shape of info    
+            print("\n[INFO] Shape of info:")
+            
+            
+            # Also check if there are any keys containing "knee" or "joint"
+            knee_keys = [key for key in str(info).lower().split() if "knee" in key]
+            joint_keys = [key for key in str(info).lower().split() if "joint" in key]
+            print(f"[INFO] Potential knee-related keys: {knee_keys}")
+            print(f"[INFO] Potential joint-related keys: {joint_keys}")
+            
         # Store info with timestep
         info_with_timestep = {'timestep': timestep}
         info_with_timestep.update(info)
@@ -208,12 +221,26 @@ def main():
         if args_cli.real_time and sleep_time > 0:
             time.sleep(sleep_time)
 
-    # After simulation ends, save to CSV
-    print(f"[INFO] Saving {len(all_info)} timesteps of data to CSV")
-    info_df = pd.DataFrame(all_info)
-    csv_path = os.path.join(log_dir, "biomechanics_data.csv")
-    info_df.to_csv(csv_path, index=False)
-    print(f"[INFO] Data saved to: {csv_path}")
+    # After simulation ends, organize and save data to CSV
+    print(f"[INFO] Processing {len(all_info)} timesteps of data")
+        # Before env.close()
+    if all_info:
+        # Convert to pandas DataFrame for easy analysis
+        df = pd.DataFrame(all_info)
+        
+        # Save to CSV
+        csv_path = os.path.join(log_dir, "joint_data.csv")
+        df.to_csv(csv_path, index=False)
+        print(f"[INFO] Saved joint data to: {csv_path}")
+        
+        # Print column names to help identify joints
+        print("\n[INFO] Available data columns:")
+        print(", ".join(df.columns))
+        
+        # Try to find columns related to knee
+        knee_cols = [col for col in df.columns if "knee" in col.lower()]
+        if knee_cols:
+            print(f"[INFO] Found potential knee-related columns: {knee_cols}")
     
     # close the simulator
     env.close()
