@@ -27,7 +27,8 @@ class HumanoidAmpEnvCfg(DirectRLEnvCfg):
     # env
     episode_length_s = 10.0
     decimation: int = MISSING
-
+    action_frequency: int = MISSING
+    
     # spaces
     observation_space = 81
     action_space = 28
@@ -77,16 +78,19 @@ class HumanoidAmpEnvCfg(DirectRLEnvCfg):
 @configclass
 class HumanoidAmpDanceEnvCfg(HumanoidAmpEnvCfg):
     motion_file = os.path.join(MOTIONS_DIR, "humanoid_dance.npz")
-
+    action_frequency = 1
 
 @configclass
 class HumanoidAmpRunEnvCfg(HumanoidAmpEnvCfg):
     motion_file = os.path.join(MOTIONS_DIR, "humanoid_run.npz")
-
+    action_frequency = 1
 
 @configclass
 class HumanoidAmpWalkEnvCfg(HumanoidAmpEnvCfg):
     motion_file = os.path.join(MOTIONS_DIR, "humanoid_walk.npz")
+    action_frequency = 1
+    
+    
  
 @configclass
 class HumanoidAmpWalkYoungEnvCfg(HumanoidAmpEnvCfg):
@@ -94,6 +98,7 @@ class HumanoidAmpWalkYoungEnvCfg(HumanoidAmpEnvCfg):
     
     motion_file = os.path.join(MOTIONS_DIR, "humanoid_walk.npz")
     decimation = 1
+    action_frequency = 1
     
     # Modified simulation parameters with smaller timestep for stability
     sim: SimulationCfg = SimulationCfg(
@@ -111,7 +116,8 @@ class HumanoidAmpWalkNormalEnvCfg(HumanoidAmpEnvCfg):
     """Humanoid AMP environment config for elderly walking."""
     
     motion_file = os.path.join(MOTIONS_DIR, "humanoid_walk.npz")
-    decimation = 2
+    decimation = 1
+    action_frequency = 1
     
     # Modified simulation parameters with smaller timestep for stability
     sim: SimulationCfg = SimulationCfg(
@@ -127,7 +133,8 @@ class HumanoidAmpWalkOldEnvCfg(HumanoidAmpEnvCfg):
     """Humanoid AMP environment config for elderly walking."""
     
     motion_file = os.path.join(MOTIONS_DIR, "humanoid_walk.npz")
-    decimation = 4
+    decimation = 1
+    action_frequency = 4
     
     # Modified robot parameters to simulate elderly movement - with more stable settings
     robot: ArticulationCfg = HUMANOID_28_CFG.replace(prim_path="/World/envs/env_.*/Robot").replace(
@@ -157,7 +164,8 @@ class HumanoidAmpWalkReallyOldEnvCfg(HumanoidAmpEnvCfg):
     """Humanoid AMP environment config for elderly walking."""
     
     motion_file = os.path.join(MOTIONS_DIR, "humanoid_walk.npz")
-    decimation = 6
+    decimation = 1
+    action_frequency = 6
     
     # Modified robot parameters to simulate elderly movement - with more stable settings
     robot: ArticulationCfg = HUMANOID_28_CFG.replace(prim_path="/World/envs/env_.*/Robot").replace(

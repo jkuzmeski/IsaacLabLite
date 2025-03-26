@@ -45,7 +45,8 @@ parser.add_argument(
     choices=["AMP", "PPO", "IPPO", "MAPPO"],
     help="The RL algorithm used for training the skrl agent.",
 )
-parser.add_argument("--real-time", action="store_true", default=False, help="Run in real-time, if possible.")
+parser.add_argument("--realTime", action="store_true", default=False, help="Run in real-time, if possible.")
+parser.add_argument("--saveCSV", action="store_true", default=False, help="Save simulation data to CSV files.")
 
 # append AppLauncher cli args
 AppLauncher.add_app_launcher_args(parser)
@@ -95,6 +96,19 @@ from isaaclab_tasks.utils import get_checkpoint_path, load_cfg_from_registry, pa
 # config shortcuts
 algorithm = args_cli.algorithm.lower()
 
+# Add this helper function before the main loop:
+def convert_tensors_to_python(obj):
+    """Recursively convert tensors to Python values."""
+    if isinstance(obj, torch.Tensor):
+        return obj.detach().cpu().numpy().tolist()
+    elif isinstance(obj, dict):
+        return {k: convert_tensors_to_python(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_tensors_to_python(item) for item in obj]
+    elif isinstance(obj, tuple):
+        return tuple(convert_tensors_to_python(item) for item in obj)
+    else:
+        return obj
 
 def main():
     """Play with skrl agent."""
@@ -191,24 +205,14 @@ def main():
                 actions = outputs[-1].get("mean_actions", outputs[0])
             # env stepping
             obs, _, _, _, info = env.step(actions)
-        # Add this debugging block after the step call
-        if timestep == 0:
-            print("\n[INFO] First info dictionary structure:")
-            print_dict(info, nesting=2)  # Using the existing print_dict utility
-            #print the shape of info    
-            print("\n[INFO] Shape of info:")
-            
-            
-            # Also check if there are any keys containing "knee" or "joint"
-            knee_keys = [key for key in str(info).lower().split() if "knee" in key]
-            joint_keys = [key for key in str(info).lower().split() if "joint" in key]
-            print(f"[INFO] Potential knee-related keys: {knee_keys}")
-            print(f"[INFO] Potential joint-related keys: {joint_keys}")
-            
-        # Store info with timestep
-        info_with_timestep = {'timestep': timestep}
-        info_with_timestep.update(info)
-        all_info.append(info_with_timestep)
+
+            # Then modify where you store info in the main loop:
+            # Store info with timestep
+            info_with_timestep = {'timestep': timestep}
+            # Convert any tensors to regular Python values
+            converted_info = convert_tensors_to_python(info)
+            info_with_timestep.update(converted_info)
+            all_info.append(info_with_timestep)
         
         timestep += 1
         if args_cli.video:
@@ -218,29 +222,47 @@ def main():
 
         # time delay for real-time evaluation
         sleep_time = dt - (time.time() - start_time)
-        if args_cli.real_time and sleep_time > 0:
+        if args_cli.realTime and sleep_time > 0:
             time.sleep(sleep_time)
 
     # After simulation ends, organize and save data to CSV
     print(f"[INFO] Processing {len(all_info)} timesteps of data")
-        # Before env.close()
-    if all_info:
+    # Before env.close()
+    if all_info and args_cli.saveCSV:
+        # Process data for better CSV storage
+        processed_data = []
+        
+        for info in all_info:
+            flat_info = {'timestep': info['timestep']}
+            
+            # Flatten nested structures
+            for key, value in info.items():
+                if key == 'timestep':
+                    continue
+                    
+                # If it's a list within a list (like your amp_obs)
+                if isinstance(value, list) and value and isinstance(value[0], list):
+                    for i, inner_list in enumerate(value):
+                        for j, val in enumerate(inner_list):
+                            flat_info[f"{key}_{j}"] = val
+                # If it's a simple list
+                elif isinstance(value, list):
+                    for i, val in enumerate(value):
+                        flat_info[f"{key}_{i}"] = val
+                # If it's any other value
+                else:
+                    flat_info[key] = value
+                    
+            processed_data.append(flat_info)
+        
         # Convert to pandas DataFrame for easy analysis
-        df = pd.DataFrame(all_info)
+        df = pd.DataFrame(processed_data)
         
         # Save to CSV
         csv_path = os.path.join(log_dir, "joint_data.csv")
         df.to_csv(csv_path, index=False)
         print(f"[INFO] Saved joint data to: {csv_path}")
-        
-        # Print column names to help identify joints
-        print("\n[INFO] Available data columns:")
-        print(", ".join(df.columns))
-        
-        # Try to find columns related to knee
-        knee_cols = [col for col in df.columns if "knee" in col.lower()]
-        if knee_cols:
-            print(f"[INFO] Found potential knee-related columns: {knee_cols}")
+
     
     # close the simulator
     env.close()

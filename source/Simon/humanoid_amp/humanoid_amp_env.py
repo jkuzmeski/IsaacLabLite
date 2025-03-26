@@ -25,6 +25,10 @@ class HumanoidAmpEnv(DirectRLEnv):
     def __init__(self, cfg: HumanoidAmpEnvCfg, render_mode: str | None = None, **kwargs):
         super().__init__(cfg, render_mode, **kwargs)
 
+        # Add action frequency tracking
+        self._step_count = 0
+        self._last_applied_actions = None
+        
         # action offset and scale
         dof_lower_limits = self.robot.data.soft_joint_pos_limits[0, :, 0]
         dof_upper_limits = self.robot.data.soft_joint_pos_limits[0, :, 1]
@@ -48,6 +52,11 @@ class HumanoidAmpEnv(DirectRLEnv):
         self.amp_observation_buffer = torch.zeros(
             (self.num_envs, self.cfg.num_amp_observations, self.cfg.amp_observation_space), device=self.device
         )
+        
+        
+        # If action_frequency is not in config, default to 1 (apply every step)
+        if not hasattr(self.cfg, "action_frequency"):
+            self.cfg.action_frequency = 1
 
     def _setup_scene(self):
         self.robot = Articulation(self.cfg.robot)
@@ -74,7 +83,19 @@ class HumanoidAmpEnv(DirectRLEnv):
         self.actions = actions.clone()
 
     def _apply_action(self):
-        target = self.action_offset + self.action_scale * self.actions
+        # Increment step counter
+        self._step_count += 1
+        
+        # Only update actions when it's time according to action frequency
+        if self._last_applied_actions is None or self._step_count % self.cfg.action_frequency == 0:
+            # Apply the new actions
+            target = self.action_offset + self.action_scale * self.actions
+            self._last_applied_actions = self.actions.clone()
+        else:
+            # Reuse the previously applied actions
+            target = self.action_offset + self.action_scale * self._last_applied_actions
+            
+        # Apply the target positions
         self.robot.set_joint_position_target(target)
 
     def _get_observations(self) -> dict:
@@ -111,7 +132,8 @@ class HumanoidAmpEnv(DirectRLEnv):
 
     def _reset_idx(self, env_ids: torch.Tensor | None):
         if env_ids is None or len(env_ids) == self.num_envs:
-            env_ids = self.robot._ALL_INDICES
+            self._step_count = 0
+            self._last_applied_actions = None
         self.robot.reset(env_ids)
         super()._reset_idx(env_ids)
 

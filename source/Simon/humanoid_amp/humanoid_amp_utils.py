@@ -4,6 +4,29 @@ def get_observation_dimensions():
     """
     Returns a dictionary mapping observation dimensions to their meaning.
     
+    Let me break down the observation space for you based on the compute_obs function in your code:
+
+    DOF Positions (dimensions 0-27):
+        28 joint positions
+    DOF Velocities (dimensions 28-55):
+        28 joint velocities
+    Root Height (dimension 56):
+        Z-coordinate of the reference body (torso)
+    Root Orientation (dimensions 57-62):
+        Tangent vector (x,y,z): 3D
+        Normal vector (x,y,z): 3D
+        These are derived from the quaternion through quaternion_to_tangent_and_normal()
+    Root Linear Velocity (dimensions 63-65):
+        Linear velocity (x,y,z) of the reference body
+    Root Angular Velocity (dimensions 66-68):
+        Angular velocity (x,y,z) of the reference body
+    Key Body Positions (dimensions 69-80):
+        Relative positions of 4 key bodies (right_hand, left_hand, right_foot, left_foot)
+        Each position is 3D (x,y,z), so 4*3 = 12 dimensions
+        These positions are relative to the root body position (torso)
+    
+    
+    
     The HumanoidAmpEnv observation space consists of 81 dimensions structured as follows:
     """
     
