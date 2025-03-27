@@ -78,17 +78,17 @@ class HumanoidAmpEnvCfg(DirectRLEnvCfg):
 @configclass
 class HumanoidAmpDanceEnvCfg(HumanoidAmpEnvCfg):
     motion_file = os.path.join(MOTIONS_DIR, "humanoid_dance.npz")
-    action_frequency = 1
+    action_frequency = 2
 
 @configclass
 class HumanoidAmpRunEnvCfg(HumanoidAmpEnvCfg):
     motion_file = os.path.join(MOTIONS_DIR, "humanoid_run.npz")
-    action_frequency = 1
+    action_frequency = 2
 
 @configclass
 class HumanoidAmpWalkEnvCfg(HumanoidAmpEnvCfg):
     motion_file = os.path.join(MOTIONS_DIR, "humanoid_walk.npz")
-    action_frequency = 1
+    action_frequency = 2
     
     
  
@@ -97,7 +97,7 @@ class HumanoidAmpWalkYoungEnvCfg(HumanoidAmpEnvCfg):
     """Humanoid AMP environment config for elderly walking."""
     
     motion_file = os.path.join(MOTIONS_DIR, "humanoid_walk.npz")
-    decimation = 1
+    decimation = 2
     action_frequency = 1
     
     # Modified simulation parameters with smaller timestep for stability
@@ -116,7 +116,7 @@ class HumanoidAmpWalkNormalEnvCfg(HumanoidAmpEnvCfg):
     """Humanoid AMP environment config for elderly walking."""
     
     motion_file = os.path.join(MOTIONS_DIR, "humanoid_walk.npz")
-    decimation = 1
+    decimation = 2
     action_frequency = 1
     
     # Modified simulation parameters with smaller timestep for stability
@@ -133,8 +133,8 @@ class HumanoidAmpWalkOldEnvCfg(HumanoidAmpEnvCfg):
     """Humanoid AMP environment config for elderly walking."""
     
     motion_file = os.path.join(MOTIONS_DIR, "humanoid_walk.npz")
-    decimation = 1
-    action_frequency = 4
+    decimation = 2
+    action_frequency = 2
     
     # Modified robot parameters to simulate elderly movement - with more stable settings
     robot: ArticulationCfg = HUMANOID_28_CFG.replace(prim_path="/World/envs/env_.*/Robot").replace(
@@ -164,7 +164,7 @@ class HumanoidAmpWalkReallyOldEnvCfg(HumanoidAmpEnvCfg):
     """Humanoid AMP environment config for elderly walking."""
     
     motion_file = os.path.join(MOTIONS_DIR, "humanoid_walk.npz")
-    decimation = 1
+    decimation = 2
     action_frequency = 6
     
     # Modified robot parameters to simulate elderly movement - with more stable settings

@@ -15,7 +15,7 @@ from isaaclab.envs import DirectRLEnv
 from isaaclab.sim.spawners.from_files import GroundPlaneCfg, spawn_ground_plane
 from isaaclab.utils.math import quat_rotate
 
-from .humanoid_amp_env_cfg import HumanoidAmpEnvCfg
+from .simon_env_cfg import HumanoidAmpEnvCfg
 from .motions import MotionLoader
 
 

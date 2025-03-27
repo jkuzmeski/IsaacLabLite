@@ -5,7 +5,7 @@ echo Starting Humanoid AMP Walk experiment...
 
 :: Run the first experiment
 echo Running experiment 2...
-call isaaclab.bat -p scripts\reinforcement_learning\skrl\train.py --task=Isaac-Humanoid-AMP-Walk-Direct-v0-normal --algorithm=AMP --headless
+call isaaclab.bat -p scripts\reinforcement_learning\skrl\train.py --task=Isaac-Simon-Walk-Direct-v0-normal --algorithm=AMP --headless
 
 :: Check for errors
 if %ERRORLEVEL% neq 0 (
@@ -16,7 +16,7 @@ if %ERRORLEVEL% neq 0 (
 
 :: Run the first experiment
 echo Running experiment 3...
-call isaaclab.bat -p scripts\reinforcement_learning\skrl\train.py --task=Isaac-Humanoid-AMP-Walk-Direct-v0-old --algorithm=AMP --headless
+call isaaclab.bat -p scripts\reinforcement_learning\skrl\train.py --task=Isaac-Simon-Walk-Direct-v0-old --algorithm=AMP --headless
 
 :: Check for errors
 if %ERRORLEVEL% neq 0 (
@@ -28,3 +28,5 @@ if %ERRORLEVEL% neq 0 (
 
 echo Experiment completed successfully.
 pause
+
+:: isaaclab.bat -p scripts\reinforcement_learning\skrl\biomech_eval.py --algorithm=AMP --num_envs=1 --task=Isaac-Simon-Walk-Direct-v0-normal --checkpoint=
